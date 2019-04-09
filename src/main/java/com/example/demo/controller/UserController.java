@@ -12,11 +12,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 
 @RestController
 public class UserController {
-    //依赖注入
+    //依赖注入，自动创建指定类的对象
     @Autowired
     UserService userService;
 
@@ -42,12 +43,19 @@ public class UserController {
             return  responseMap;
         }
         User u = userService.getUser(username);
+        if(u==null){
+            responseMap.setCode(-1);
+            responseMap.setMsg("用户不存在！");
+            return  responseMap;
+        }
         if (u.getPassWord().equals(password)){
             responseMap.setCode(0);
             responseMap.setMsg("登陆成功");
             HashMap<String,User> res=new HashMap<>();
             res.put("userInfo",u);
             responseMap.setRes(res);
+            HttpSession session=request.getSession();
+            session.setAttribute("userInfo",u);
             return responseMap;
         }
         responseMap.setCode(-1);
