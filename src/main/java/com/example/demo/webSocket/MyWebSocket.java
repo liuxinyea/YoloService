@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 public class MyWebSocket extends WebSocketServer {
@@ -35,28 +37,35 @@ public class MyWebSocket extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        System.out.println( webSocket.getRemoteSocketAddress() + ": " + s );
-    }
-    public static void main( String[] args ) throws InterruptedException , IOException {
-        int port = 8888; // 843 flash policy port
-        try {
-            port = Integer.parseInt( args[ 0 ] );
-        } catch ( Exception ex ) {
-        }
-        MyWebSocket s = new MyWebSocket( port );
-        s.start();
-        System.out.println( "ChatServer started on port: " + s.getPort() );
-        s.broadcast("ChatServer==================================>" );
-        BufferedReader sysin = new BufferedReader( new InputStreamReader( System.in ) );
-        while ( true ) {
-            String in = sysin.readLine();
-            s.broadcast( in );
-            if( in.equals( "exit" ) ) {
-                s.stop(1000);
-                break;
+        Collection<WebSocket> collection=getConnections();
+        for (WebSocket socket : collection) {
+            if (!socket.getRemoteSocketAddress().equals(webSocket.getRemoteSocketAddress())) {
+                socket.send(s);
             }
         }
+        System.out.println(getLocalSocketAddress(webSocket) + ": :" + s );
+        System.out.println( webSocket.getRemoteSocketAddress() + ": " + s );
     }
+//    public static void main( String[] args ) throws InterruptedException , IOException {
+//        int port = 8888; // 843 flash policy port
+//        try {
+//            port = Integer.parseInt( args[ 0 ] );
+//        } catch ( Exception ex ) {
+//        }
+//        MyWebSocket s = new MyWebSocket( port );
+//        s.start();
+//        System.out.println( "ChatServer started on port: " + s.getPort() );
+//        s.broadcast("ChatServer==================================>" );
+//        BufferedReader sysin = new BufferedReader( new InputStreamReader( System.in ) );
+//        while ( true ) {
+//            String in = sysin.readLine();
+//            s.broadcast( in );
+//            if( in.equals( "exit" ) ) {
+//                s.stop(1000);
+//                break;
+//            }
+//        }
+//    }
     @Override
     public void onError( WebSocket conn, Exception ex ) {
         ex.printStackTrace();
